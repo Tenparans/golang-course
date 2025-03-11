@@ -1,0 +1,54 @@
+package main
+
+import (
+	"fmt"
+	"math/rand"
+	"sync"
+	"time"
+)
+
+type Sensor struct {
+	id       int
+	interval time.Duration
+}
+
+func (s *Sensor) start(readings chan<- string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for {
+		time.Sleep(s.interval)
+		value := rand.Intn(100)
+		readings <- fmt.Sprintf("Sensor %d: %d", s.id, value)
+	}
+}
+
+func main() {
+	const N = 10
+
+	readings := make(chan string)
+	var wg sync.WaitGroup
+
+	sensors := []Sensor{
+		{id: 1, interval: 500 * time.Millisecond},
+		{id: 2, interval: 300 * time.Millisecond},
+		{id: 3, interval: 700 * time.Millisecond},
+	}
+
+	for _, sensor := range sensors {
+		wg.Add(1)
+		go sensor.start(readings, &wg)
+	}
+
+	go func() {
+		wg.Wait()
+		close(readings)
+	}()
+
+	count := 0
+	for reading := range readings {
+		fmt.Println(reading)
+		count++
+		if count >= N {
+			break
+		}
+	}
+}
