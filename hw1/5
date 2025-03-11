@@ -1,0 +1,29 @@
+package main
+
+import (
+	"fmt"
+)
+
+type MyError struct {
+	Message string
+	Code    int
+}
+
+func (e *MyError) Error() string {
+	return fmt.Sprintf("Error %d: %s", e.Code, e.Message)
+}
+
+func main() {
+	errorChannel := make(chan error, 1)
+
+	myErr := &MyError{
+		Message: "Что-то пошло не так",
+		Code:    404,
+	}
+
+	errorChannel <- myErr
+
+	if err := <-errorChannel; err != nil {
+		fmt.Println("Получена ошибка:", err)
+	}
+}
