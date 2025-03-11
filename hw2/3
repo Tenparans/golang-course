@@ -1,0 +1,33 @@
+package main
+
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
+
+func main() {
+	const timeoutDuration = 2 * time.Second
+	const maxReadings = 5
+
+	readings := make(chan int)
+
+	go func() {
+		for {
+			value := rand.Intn(100)
+			readings <- value
+			time.Sleep(time.Duration(rand.Intn(5)) * time.Second)
+		}
+	}()
+
+	for i := 0; i < maxReadings; i++ {
+		select {
+		case value := <-readings:
+			fmt.Printf("Полученный: %d\n", value)
+		case <-time.After(timeoutDuration):
+			fmt.Println("Таймаут")
+		}
+	}
+
+	fmt.Println("Закончено считывание значений.")
+}
