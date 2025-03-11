@@ -1,0 +1,29 @@
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	allowed := "cad"
+	words := []string{"cc", "acd", "b", "ba", "bac", "bad", "ac", "d"}
+
+	allowedSet := make(map[rune]struct{})
+	for _, char := range allowed {
+		allowedSet[char] = struct{}{}
+	}
+	k := 0
+	for _, word := range words {
+		fl := true
+		for _, char := range word {
+			if _, exists := allowedSet[char]; !exists {
+				fl = false
+				break
+			}
+		}
+		if fl {
+			k++
+		}
+	}
+	fmt.Println(k)
+}
