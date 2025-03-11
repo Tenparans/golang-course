@@ -1,0 +1,30 @@
+package main
+
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
+
+func main() {
+	numbers := make(chan int)
+
+	go func() {
+		for i := 0; i < 10000; i++ {
+			numbers <- rand.Intn(100)
+		}
+		close(numbers)
+	}()
+
+	go func() {
+		for num := range numbers {
+			if num%2 == 0 {
+				fmt.Printf("%d четное\n", num)
+			} else {
+				fmt.Printf("%d нечетное\n", num)
+			}
+		}
+	}()
+
+	time.Sleep(time.Second)
+}
