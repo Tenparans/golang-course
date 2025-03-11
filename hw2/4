@@ -1,0 +1,29 @@
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	pingChannel := make(chan int)
+	pongChannel := make(chan int)
+
+	go func() {
+		for i := 0; i < 10; i++ {
+			pingChannel <- 1
+			<-pongChannel
+			fmt.Println("Pong")
+		}
+	}()
+
+	go func() {
+		for i := 0; i < 10; i++ {
+			<-pingChannel
+			fmt.Println("\nPing")
+			pongChannel <- 2
+		}
+	}()
+
+	time.Sleep(2 * time.Second)
+}
