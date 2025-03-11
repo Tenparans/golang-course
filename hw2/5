@@ -1,0 +1,30 @@
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	channel := make(chan int)
+
+	go func() {
+		for i := 0; i < 5; i++ {
+			channel <- i
+		}
+		close(channel)
+	}()
+
+	for {
+		select {
+		case value, ok := <-channel:
+			if ok {
+				fmt.Println("Полученно:", value)
+			} else {
+				fmt.Println("Канал закрыт")
+				return
+			}
+		default:
+			fmt.Println("Нет данных в канале")
+		}
+	}
+}
