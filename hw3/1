@@ -1,1 +1,40 @@
-do
+package hw3_1
+
+import (
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+)
+
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: go run hw3_1.go <directory>")
+		return
+	}
+
+	dir := os.Args[1]
+
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Name: %s\n", info.Name())
+		fmt.Printf("Size: %d bytes\n", info.Size())
+		fmt.Printf("Is Directory: %t\n", info.IsDir())
+		mode := info.Mode()
+		fmt.Printf("Permissions: %s\n", mode.Perm())
+		fmt.Println()
+		return nil
+	})
+
+	if err != nil {
+		fmt.Printf("Error walking the path %v: %v\n", dir, err)
+	}
+}
