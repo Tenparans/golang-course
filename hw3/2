@@ -1,0 +1,41 @@
+package hw3_z2
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"unicode"
+)
+
+func main() {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Введите строку: ")
+	input, _ := reader.ReadString('\n')
+	cleaned := cleanString(input)
+
+	if isPalindrome(cleaned) {
+		fmt.Println("Это палиндром.")
+	} else {
+		fmt.Println("Это не палиндром.")
+	}
+}
+
+func cleanString(s string) string {
+	var result []rune
+	for _, r := range s {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			result = append(result, unicode.ToLower(r))
+		}
+	}
+	return string(result)
+}
+
+func isPalindrome(s string) bool {
+	n := len(s)
+	for i := 0; i < n/2; i++ {
+		if s[i] != s[n-i-1] {
+			return false
+		}
+	}
+	return true
+}
