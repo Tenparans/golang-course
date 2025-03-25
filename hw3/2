@@ -1,4 +1,4 @@
-package hw3_z2
+package main
 
 import (
 	"bufio"
