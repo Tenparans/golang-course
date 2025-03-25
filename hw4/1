@@ -1,0 +1,133 @@
+package main
+
+import (
+	"fmt"
+	"math/rand"
+	"os"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+)
+
+const (
+	numCount = 100
+	fileName = "random_numbers.txt"
+)
+
+func main() {
+	err := createRandomNumberFile(fileName, numCount)
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return
+	}
+
+	numbers, err := readNumbersFromFile(fileName)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return
+	}
+
+	sum, average, evenCount, oddCount := calculateStatistics(numbers)
+
+	fmt.Printf("Sum: %d\n", sum)
+	fmt.Printf("Average: %.2f\n", average)
+	fmt.Printf("Even Count: %d\n", evenCount)
+	fmt.Printf("Odd Count: %d\n", oddCount)
+}
+
+func createRandomNumberFile(filename string, count int) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < count; i++ {
+		num := rand.Intn(100)
+		_, err := file.WriteString(fmt.Sprintf("%d\n", num))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func readNumbersFromFile(filename string) ([]int, error) {
+	file, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	lines := string(file)
+	var numbers []int
+	for _, line := range strings.Split(lines, "\n") {
+		if line == "" {
+			continue
+		}
+		num, err := strconv.Atoi(line)
+		if err == nil {
+			numbers = append(numbers, num)
+		}
+	}
+	return numbers, nil
+}
+
+func calculateStatistics(numbers []int) (sum int, average float64, evenCount int, oddCount int) {
+	var wg sync.WaitGroup
+	sumCh := make(chan int)
+	evenCh := make(chan int)
+	oddCh := make(chan int)
+
+	wg.Add(3)
+
+	go func() {
+		defer wg.Done()
+		for _, num := range numbers {
+			sumCh <- num
+		}
+		close(sumCh)
+	}()
+
+	go func() {
+		defer wg.Done()
+		for _, num := range numbers {
+			if num%2 == 0 {
+				evenCh <- num
+			} else {
+				oddCh <- num
+			}
+		}
+		close(evenCh)
+		close(oddCh)
+	}()
+
+	go func() {
+		defer wg.Done()
+		for num := range sumCh {
+			sum += num
+		}
+	}()
+
+	go func() {
+		for range evenCh {
+			evenCount++
+		}
+	}()
+
+	go func() {
+		for range oddCh {
+			oddCount++
+		}
+	}()
+
+	wg.Wait()
+
+	count := len(numbers)
+	if count > 0 {
+		average = float64(sum) / float64(count)
+	}
+
+	return sum, average, evenCount, oddCount
+}
